@@ -10,7 +10,7 @@ import UIKit
 
 class TodoTableViewController: UITableViewController {
     
-    let itemArray = ["Hawaii", "Life", "Style"]
+    var itemArray = ["Hawaii", "Life", "Style"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,6 +21,7 @@ class TodoTableViewController: UITableViewController {
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
+    
 
     // MARK: - Table view data source
 
@@ -42,6 +43,8 @@ class TodoTableViewController: UITableViewController {
 
         return cell
     }
+    
+    // MARK: Tabel view Delegate Methodes
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
 //        print(itemArray[indexPath.row])
@@ -54,4 +57,24 @@ class TodoTableViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
+    // MARK: - Add new Items section
+    
+    @IBAction func addButtonPresed(_ sender: UIBarButtonItem) {
+        
+        var textFiledItem = UITextField()
+        
+        let alert = UIAlertController(title: "Add new item", message: "" , preferredStyle: .alert)
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            //what will hapedn when user click on barbutton
+            self.itemArray.append(textFiledItem.text!)
+            self.tableView.reloadData()
+        }
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Creat new Item"
+            textFiledItem = alertTextField
+        }
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+    }
+    
 }
