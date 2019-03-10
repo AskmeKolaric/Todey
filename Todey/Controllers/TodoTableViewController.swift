@@ -7,31 +7,19 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoTableViewController: UITableViewController {
     
     var itemArray = [Item]()
     
-    let defaults = UserDefaults.standard
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let newItem = Item()
-        newItem.title = "Hawaii"
-        itemArray.append(newItem)
-        
-        let newItem2 = Item()
-        newItem2.title = "Life"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "Style"
-        itemArray.append(newItem3)
-        
-         if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-           itemArray = items
-        }
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        loadItems()
     }
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -72,11 +60,12 @@ class TodoTableViewController: UITableViewController {
     // MARK: Tabel view Delegate Methodes
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-//        print(itemArray[indexPath.row])
+          itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+       
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
         
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        
-        self.tableView.reloadData() 
+        saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
@@ -90,12 +79,11 @@ class TodoTableViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             //what will hapedn when user click on barbutton
             
-            let newItems = Item()
+            let newItems = Item(context: self.context)
             newItems.title = textFiledItem.text!
+            newItems.done = false
             self.itemArray.append(newItems)
-            
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-            self.tableView.reloadData() 
+            self.saveItems()
         }
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Creat new Item"
@@ -103,6 +91,35 @@ class TodoTableViewController: UITableViewController {
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    //MARK: - Model Manupulati Methods
+    
+    func saveItems() {
+       
+        do {
+            try context.save()
+        } catch {
+            print("Error saveing context \(error)")
+        }
+        self.tableView.reloadData()
+    }
+    func loadItems() {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        do {
+           itemArray = try context.fetch(request)
+        } catch {
+            print("Error fething data from contex \(error)")
+        }
+    }
+   
+}
+
+//    MARK: - Search Bar Methiods
+
+extension TodoTableViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
     }
     
 }
