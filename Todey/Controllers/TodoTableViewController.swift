@@ -13,13 +13,18 @@ class TodoTableViewController: UITableViewController {
     
     var itemArray = [Item]()
     
+    var selectedCategory : Category? {
+        didSet{
+            loadItems()
+        }
+    }
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        loadItems()
     }
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -82,7 +87,9 @@ class TodoTableViewController: UITableViewController {
             let newItems = Item(context: self.context)
             newItems.title = textFiledItem.text!
             newItems.done = false
+            newItems.parentCategory = self.selectedCategory
             self.itemArray.append(newItems)
+            
             self.saveItems()
         }
         alert.addTextField { (alertTextField) in
@@ -103,15 +110,22 @@ class TodoTableViewController: UITableViewController {
         }
         self.tableView.reloadData()
     }
-    func loadItems() {
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil ) {
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@",selectedCategory!.name!)
+
+        if let aditionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, aditionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
         do {
            itemArray = try context.fetch(request)
         } catch {
             print("Error fething data from contex \(error)")
         }
+        tableView.reloadData()
     }
-   
 }
 
 //    MARK: - Search Bar Methiods
@@ -119,7 +133,24 @@ class TodoTableViewController: UITableViewController {
 extension TodoTableViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
         
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadItems(with: request, predicate: predicate)
+        
+        tableView.reloadData()
+    }
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
     }
     
 }
