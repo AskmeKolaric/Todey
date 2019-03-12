@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class TodoTableViewController: SwipeTableViewController {
     
@@ -36,7 +37,7 @@ class TodoTableViewController: SwipeTableViewController {
         // #warning Incomplete implementation, return the number of rows
         return todoItems?.count ?? 1
     }
-
+    
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
        
@@ -44,9 +45,19 @@ class TodoTableViewController: SwipeTableViewController {
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
+            
+            if let colour = UIColor(hexString: selectedCategory!.colour)?.darken(byPercentage:
+                //                currentli on row #5
+                //theres a total of 10 items in todoItmes
+                (CGFloat(indexPath.row) / CGFloat(todoItems!.count))) {
+                cell.backgroundColor = colour
+                cell.textLabel?.textColor = ContrastColorOf(colour, returnFlat: true)
+            }
+//            print("Version 1 : \(CGFloat(indexPath.row / todoItems!.count)))")
+//            print("Version 2 : \(CGFloat(indexPath.row) / CGFloat(todoItems!.count))")
+            
             //Tenary operator ==>
             // value = codition ? valueIfTrue : valueIfFalse
-            
             cell.accessoryType = item.done == true ? .checkmark : .none
         } else {
                 cell.textLabel?.text = "No Items added yet"
