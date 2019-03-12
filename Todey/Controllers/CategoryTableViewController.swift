@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class CategoryTableViewController: UITableViewController {
+class CategoryTableViewController: SwipeTableViewController {
 
     let realm = try! Realm()
     
@@ -22,9 +22,11 @@ class CategoryTableViewController: UITableViewController {
         super.viewDidLoad()
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         loadCategories()
+        
     }
     
     //    MARK: - TableView Datasource Methods
+   
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return category?.count ?? 1
 //        nil Coalescing Operator
@@ -32,7 +34,7 @@ class CategoryTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         cell.textLabel?.text = category?[indexPath.row].name ?? "No categories added yet"
         
@@ -74,6 +76,20 @@ class CategoryTableViewController: UITableViewController {
 
         tableView.reloadData()
     }
+    //    MARK: - Delete Datefrom Swipe
+    
+    override func updatedModel(at indexPath: IndexPath) {
+        
+             if let categoryForDeletions = category?[indexPath.row] {
+               do{
+                    try self.realm.write {
+                    self.realm.delete(categoryForDeletions)
+                    }
+               } catch {
+                    print("Error deleting category, \(error)")
+            }
+        }
+    }
     
     //    MARK: - Add New Category
     
@@ -96,7 +112,5 @@ class CategoryTableViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
         
     }
-    
-    
-    
 }
+

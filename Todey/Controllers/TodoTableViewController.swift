@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class TodoTableViewController: UITableViewController {
+class TodoTableViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     
@@ -40,7 +40,7 @@ class TodoTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "toDoCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
@@ -70,6 +70,20 @@ class TodoTableViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
+    //    MARK: - Delete Methods
+    override func updatedModel(at indexPath: IndexPath) {
+        
+        if let itemsForDeletions = todoItems?[indexPath.row] {
+            do{
+                try self.realm.write {
+                    self.realm.delete(itemsForDeletions)
+                }
+            } catch {
+                print("Error deleting category, \(error)")
+            }
+        }
+    }
+    
     // MARK: - Add new Items section
     
     @IBAction func addButtonPresed(_ sender: UIBarButtonItem) {
